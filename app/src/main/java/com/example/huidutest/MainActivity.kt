@@ -9,7 +9,6 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.huidutest.databinding.ActivityMainBinding
-import com.example.huidutest.lib.DeviceOwnerChecker
 import com.example.huidutest.lib.KioskDeviceAdminReceiver
 import com.example.huidutest.lib.SystemUIAccessor
 import com.example.huidutest.lib.SystemUIManagement
@@ -18,7 +17,7 @@ import com.example.huidutest.lib.SystemUIManagement
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
 
-    private var systemUIManagement: SystemUIManagement? = null
+    private lateinit var systemUIManagement: SystemUIManagement
     private var localDeviceAdminReceiver: BroadcastReceiver? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,23 +32,24 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateUI() {
-        val isDeviceOwner = DeviceOwnerChecker.isAppDeviceOwner(this)
+        val isDeviceOwner = systemUIManagement.isAppDeviceOwner()
         binding.checkDeviceOwner.isEnabled = isDeviceOwner
         binding.checkDeviceOwner.isChecked = isDeviceOwner
 
         binding.checkLockSysBar.isEnabled = isDeviceOwner
-        binding.checkLockSysBar.isChecked = false//systemUIManagement.isLockSystemBar()
+        binding.checkLockSysBar.isChecked = systemUIManagement.isLockTaskMode()
 
-        binding.checkHideSysBar.isEnabled = isDeviceOwner
+        binding.checkHideSysBar.isEnabled = SystemUIAccessor.hasPermission(this)
+
         if (isDeviceOwner) {
-            systemUIManagement?.whitelistAppForLockTask()
+           systemUIManagement.whitelistAppForLockTask()
         }
     }
 
     private fun initEvent() {
         binding.checkDeviceOwner.setOnCheckedChangeListener { _, isChecked ->
             if (!isChecked) {
-                if (!DeviceOwnerChecker.removeDeviceOwner(this)) {
+                if (!systemUIManagement.removeDeviceOwner()) {
                     Toast.makeText(this, "Failed to remove device owner.", Toast.LENGTH_LONG)
                         .show()
                 }
@@ -57,21 +57,15 @@ class MainActivity : AppCompatActivity() {
             updateUI()
         }
 
-        binding.checkHideSysBar.setOnCheckedChangeListener { _, isChecked ->
-            systemUIManagement?.setSystemUiDisabled(this, isChecked);
+        binding.checkLockSysBar.setOnCheckedChangeListener { _, isChecked ->
+            systemUIManagement.setSystemUiDisabled(this, isChecked);
+        }
 
-            if (SystemUIAccessor.hasPermission(this)) {
-                if (isChecked) {
-                    SystemUIAccessor.hideSystemBars(this)
-                } else {
-                    SystemUIAccessor.showSystemBars(this)
-                }
+        binding.checkHideSysBar.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                SystemUIAccessor.hideSystemBars(this)
             } else {
-                Toast.makeText(
-                    this,
-                    "WRITE_SECURE_SETTINGS Permission not granted.",
-                    Toast.LENGTH_SHORT
-                ).show()
+                SystemUIAccessor.showSystemBars(this)
             }
         }
     }
@@ -82,10 +76,22 @@ class MainActivity : AppCompatActivity() {
                 override fun onReceive(context: Context, intent: Intent) {
                     val event = KioskDeviceAdminReceiver.getEvent(intent)
                     Toast.makeText(context, event.message, Toast.LENGTH_LONG).show()
-                    if (event == KioskDeviceAdminReceiver.Companion.DeviceAdminEvent.DEVICE_ADMIN_DISABLED ||
-                        event == KioskDeviceAdminReceiver.Companion.DeviceAdminEvent.DEVICE_ADMIN_ENABLED
-                    ) {
-                        updateUI()
+                    when (event) {
+                        KioskDeviceAdminReceiver.Companion.DeviceAdminEvent.DEVICE_ADMIN_ENABLED -> {
+                            updateUI()
+                        }
+                        KioskDeviceAdminReceiver.Companion.DeviceAdminEvent.DEVICE_ADMIN_DISABLED->{
+                            updateUI()
+                        }
+                        KioskDeviceAdminReceiver.Companion.DeviceAdminEvent.LOCK_TASK_MODE_ENTERING -> {
+                            binding.checkLockSysBar.isChecked = true
+                        }
+                        KioskDeviceAdminReceiver.Companion.DeviceAdminEvent.LOCK_TASK_MODE_EXITING -> {
+                            binding.checkLockSysBar.isChecked = false
+                        }
+                        KioskDeviceAdminReceiver.Companion.DeviceAdminEvent.UNSPECIFIED -> {
+                            throw UnsupportedOperationException()
+                        }
                     }
                 }
             }.also {

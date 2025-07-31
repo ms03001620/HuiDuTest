@@ -1,123 +1,112 @@
-package com.example.huidutest.lib;
+package com.example.huidutest.lib
 
-import android.app.Activity;
-import android.app.admin.DevicePolicyManager;
-import android.content.ComponentName;
-import android.content.Context;
-import android.os.Build;
-import android.util.Log;
-import java.lang.reflect.Method; // 导入反射相关的类
+import android.app.Activity
+import android.app.ActivityManager
+import android.app.admin.DevicePolicyManager
+import android.content.ComponentName
+import android.content.Context
 
-public class SystemUIManagement {
+class SystemUIManagement(context: Context, adminReceiverClass: Class<*>) {
+    private val devicePolicyManager: DevicePolicyManager
+    private val adminComponentName: ComponentName
+    private val applicationContext: Context = context.applicationContext
 
-    private static final String TAG = "SystemUIManagement";
-    private DevicePolicyManager devicePolicyManager;
-    private ComponentName adminComponentName;
-    private Context applicationContext;
-
-    public SystemUIManagement(Context context, Class<?> adminReceiverClass) {
-        this.applicationContext = context.getApplicationContext();
-        this.devicePolicyManager = (DevicePolicyManager) applicationContext.getSystemService(Context.DEVICE_POLICY_SERVICE);
-        this.adminComponentName = new ComponentName(applicationContext, adminReceiverClass);
+    init {
+        this.devicePolicyManager =
+            applicationContext.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
+        this.adminComponentName = ComponentName(applicationContext, adminReceiverClass)
     }
 
-    public boolean isAppDeviceOwner() {
-        return devicePolicyManager.isDeviceOwnerApp(applicationContext.getPackageName());
-    }
+    fun isAppDeviceOwner() = devicePolicyManager.isDeviceOwnerApp(applicationContext.packageName)
 
-    /**
-     * 启用或禁用系统 UI 的各种功能（如通知栏下拉、Home 键等）。
-     * 现在使用反射调用 setSystemUiMessage。
-     *
-     * @param activity 要进入/退出锁定任务模式的 Activity 实例。
-     * @param disable true 为禁用，false 为启用。
-     */
-    public void setSystemUiDisabled(Activity activity, boolean disable) {
-        if (!isAppDeviceOwner()) {
-            Log.e(TAG, "当前应用不是 Device Owner，无法设置系统 UI 禁用状态。");
-            return;
-        }
-
+    fun removeDeviceOwner(): Boolean {
         try {
+            devicePolicyManager.clearDeviceOwnerApp(applicationContext.packageName)
+            return true
+        } catch (e: SecurityException) {
+            return false
+        }
+    }
+
+    fun setSystemUiDisabled(activity: Activity, disable: Boolean) {
+        try {
+            cleanSystemUiMessage()
+            devicePolicyManager.setKeyguardDisabled(adminComponentName, disable)
+            // 禁用状态栏，通常指通知栏下拉和快速设置
+            devicePolicyManager.setStatusBarDisabled(adminComponentName, disable)
             if (disable) {
-                // 禁用所有系统 UI
-                // 通过反射调用 setSystemUiMessage
-                try {
-                    Method setSystemUiMessageMethod = devicePolicyManager.getClass().getMethod("setSystemUiMessage", ComponentName.class, CharSequence.class);
-                    // 你可以在这里设置你想显示的消息，如果不需要显示消息，可以传入 null 或空字符串
-                    // setSystemUiMessageMethod.invoke(devicePolicyManager, adminComponentName, "设备已锁定 by Kiosk App");
-                    setSystemUiMessageMethod.invoke(devicePolicyManager, adminComponentName, null); // 不显示特定消息
-                    Log.d(TAG, "尝试通过反射调用 setSystemUiMessage。");
-                } catch (NoSuchMethodException e) {
-                    Log.w(TAG, "setSystemUiMessage 方法在当前设备或 Android 版本上不存在。这很常见。", e);
-                }
-
-
-                devicePolicyManager.setKeyguardDisabled(adminComponentName, true); // 禁用锁屏
-                devicePolicyManager.setStatusBarDisabled(adminComponentName, true); // 禁用状态栏，通常指通知栏下拉和快速设置
-
-                // 启动锁定任务模式
-                activity.startLockTask();
-
-                Log.d(TAG, "系统 UI 功能已禁用，并进入锁定任务模式。");
+                activity.startLockTask()
             } else {
-                // 启用所有系统 UI
-                activity.stopLockTask();
-                devicePolicyManager.setStatusBarDisabled(adminComponentName, false);
-                devicePolicyManager.setKeyguardDisabled(adminComponentName, false);
-
-                // 通过反射清除 setSystemUiMessage 设置
-                try {
-                    Method setSystemUiMessageMethod = devicePolicyManager.getClass().getMethod("setSystemUiMessage", ComponentName.class, CharSequence.class);
-                    setSystemUiMessageMethod.invoke(devicePolicyManager, adminComponentName, null); // 传入 null 清除消息
-                    Log.d(TAG, "尝试通过反射清除 setSystemUiMessage。");
-                } catch (NoSuchMethodException e) {
-                    Log.w(TAG, "setSystemUiMessage 方法在当前设备或 Android 版本上不存在，无需清除。");
-                }
-
-                Log.d(TAG, "系统 UI 功能已启用，并退出锁定任务模式。");
+                activity.stopLockTask()
             }
-        } catch (SecurityException e) {
-            Log.e(TAG, "权限不足或操作失败: " + e.getMessage(), e);
-        } catch (Exception e) {
-            Log.e(TAG, "设置系统 UI 禁用状态时发生错误: " + e.getMessage(), e);
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
-    // whitelistAppForLockTask 方法保持不变
-    public boolean whitelistAppForLockTask() {
-        if (!isAppDeviceOwner()) {
-            Log.e(TAG, "当前应用不是 Device Owner，无法将应用添加到锁定任务模式白名单。");
-            return false;
-        }
+    private fun cleanSystemUiMessage() {
         try {
-            String[] packages = devicePolicyManager.getLockTaskPackages(adminComponentName);
-            boolean alreadyWhitelisted = false;
-            String currentPackage = applicationContext.getPackageName();
-            for (String pkg : packages) {
-                if (pkg.equals(currentPackage)) {
-                    alreadyWhitelisted = true;
-                    break;
+            val setSystemUiMessageMethod = devicePolicyManager.javaClass.getMethod(
+                "setSystemUiMessage",
+                ComponentName::class.java,
+                CharSequence::class.java
+            )
+            setSystemUiMessageMethod.invoke(devicePolicyManager, adminComponentName, null)
+        } catch (e: NoSuchMethodException) {
+            e.printStackTrace()
+        }
+    }
+
+    fun isLockTaskMode(): Boolean {
+        val activityManager =
+            applicationContext.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+
+        when (activityManager.lockTaskModeState) {
+            //当前未处于锁定任务模式
+            ActivityManager.LOCK_TASK_MODE_NONE -> {
+                return false
+            }
+            //当前处于屏幕固定模式 (Screen Pinning)
+            ActivityManager.LOCK_TASK_MODE_PINNED -> {
+                return true
+            }
+            //当前处于锁定任务模式 (Kiosk Mode / startLockTask)
+            ActivityManager.LOCK_TASK_MODE_LOCKED -> {
+                return true
+            }
+
+            else -> {
+                //未知锁定任务模式状态
+                return false
+            }
+        }
+    }
+
+    // 将app加入锁屏任务白名单
+    // 如果不加入那么startLockTask 只是普通的固定屏幕的做法是可以退出的
+    // 加入后只有stopLockTask才能退出
+    fun whitelistAppForLockTask(): Boolean {
+        try {
+            val packages = devicePolicyManager.getLockTaskPackages(adminComponentName)
+            var alreadyWhitelisted = false
+            val currentPackage = applicationContext.packageName
+            for (pkg in packages) {
+                if (pkg == currentPackage) {
+                    alreadyWhitelisted = true
+                    break
                 }
             }
             if (!alreadyWhitelisted) {
-                String[] newPackages = new String[packages.length + 1];
-                System.arraycopy(packages, 0, newPackages, 0, packages.length);
-                newPackages[packages.length] = currentPackage;
-                devicePolicyManager.setLockTaskPackages(adminComponentName, newPackages);
-                Log.d(TAG, "已将应用添加到锁定任务模式白名单。");
-            } else {
-                Log.d(TAG, "应用已在锁定任务模式白名单中。");
+                val newPackages = arrayOfNulls<String>(packages.size + 1)
+                System.arraycopy(packages, 0, newPackages, 0, packages.size)
+                newPackages[packages.size] = currentPackage
+                devicePolicyManager.setLockTaskPackages(adminComponentName, newPackages)
             }
-            return true;
-        } catch (SecurityException e) {
-            Log.e(TAG, "添加应用到锁定任务模式白名单失败 (权限不足): " + e.getMessage(), e);
-            return false;
-        } catch (Exception e) {
-            Log.e(TAG, "添加应用到锁定任务模式白名单时发生错误: " + e.getMessage(), e);
-            return false;
+            return true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return false
         }
     }
-
 
 }
