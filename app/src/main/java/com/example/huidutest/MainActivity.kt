@@ -40,6 +40,7 @@ class MainActivity : AppCompatActivity() {
         binding.checkLockSysBar.isChecked = systemUIManagement.isLockTaskMode()
 
         binding.checkHideSysBar.isEnabled = SystemUIAccessor.hasPermission(this)
+        binding.checkHideSysBar.isChecked = SystemUIAccessor.isHide(this)
 
         if (isDeviceOwner) {
            systemUIManagement.whitelistAppForLockTask()

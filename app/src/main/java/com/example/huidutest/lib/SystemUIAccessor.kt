@@ -63,13 +63,25 @@ object SystemUIAccessor {
         setSystemImmersiveMode(context, null)
     }
 
+    fun isHide(context: Context):Boolean {
+        try {
+            val contentResolver = context.contentResolver
+            val mode = Settings.Global.getString(contentResolver, POLICY_CONTROL)
+            return !mode.isNullOrEmpty()
+        }  catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return false
+    }
+
     private fun setSystemImmersiveMode(context: Context, mode: String?) {
         try {
             val contentResolver = context.contentResolver
             if (mode.isNullOrEmpty()) {
-                // 如果传入 null 或空字符串，则删除此设置，恢复默认
+                // 隐藏系统栏
                 Settings.Global.putString(contentResolver, POLICY_CONTROL, null)
             } else {
+                // 恢复系统栏的显示
                 Settings.Global.putString(contentResolver, POLICY_CONTROL, mode)
             }
         }  catch (e: Exception) {
