@@ -43,7 +43,7 @@ class MainActivity : AppCompatActivity() {
         binding.checkHideSysBar.isChecked = SystemUIAccessor.isHide(this)
 
         if (isDeviceOwner) {
-           systemUIManagement.whitelistAppForLockTask()
+            systemUIManagement.whitelistAppForLockTask()
         }
     }
 
@@ -81,15 +81,19 @@ class MainActivity : AppCompatActivity() {
                         KioskDeviceAdminReceiver.Companion.DeviceAdminEvent.DEVICE_ADMIN_ENABLED -> {
                             updateUI()
                         }
-                        KioskDeviceAdminReceiver.Companion.DeviceAdminEvent.DEVICE_ADMIN_DISABLED->{
+
+                        KioskDeviceAdminReceiver.Companion.DeviceAdminEvent.DEVICE_ADMIN_DISABLED -> {
                             updateUI()
                         }
+
                         KioskDeviceAdminReceiver.Companion.DeviceAdminEvent.LOCK_TASK_MODE_ENTERING -> {
                             binding.checkLockSysBar.isChecked = true
                         }
+
                         KioskDeviceAdminReceiver.Companion.DeviceAdminEvent.LOCK_TASK_MODE_EXITING -> {
                             binding.checkLockSysBar.isChecked = false
                         }
+
                         KioskDeviceAdminReceiver.Companion.DeviceAdminEvent.UNSPECIFIED -> {
                             throw UnsupportedOperationException()
                         }
