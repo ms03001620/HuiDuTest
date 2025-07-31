@@ -18,6 +18,12 @@
         android:enabled="false"
         android:text="是否是设备拥有者(Device Owner)" />
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="11sp"
+        android:text="授权\nadb shell dpm set-device-owner com.example.huidutest/.lib.KioskDeviceAdminReceiver" />
+
     <androidx.appcompat.widget.AppCompatCheckBox
         android:id="@+id/checkLockSysBar"
         android:layout_width="match_parent"
@@ -26,10 +32,24 @@
         android:text="是否锁定系统栏" />
 
     <androidx.appcompat.widget.AppCompatCheckBox
+        android:layout_marginTop="30dp"
         android:id="@+id/checkHideSysBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:enabled="false"
         android:text="是否隐藏系统栏" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="11sp"
+        android:text="授权\nadb shell pm grant com.example.huidutest android.permission.WRITE_SECURE_SETTINGS" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="11sp"
+        android:text="撤销授权\nadb shell pm revoke com.example.huidutest android.permission.WRITE_SECURE_SETTINGS" />
+
 
 </LinearLayout>
