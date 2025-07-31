@@ -73,13 +73,8 @@ object SystemUIAccessor {
     private fun setSystemImmersiveMode(context: Context, mode: String?) {
         try {
             val contentResolver = context.contentResolver
-            if (mode.isNullOrEmpty()) {
-                // 隐藏系统栏
-                Settings.Global.putString(contentResolver, POLICY_CONTROL, null)
-            } else {
-                // 恢复系统栏的显示
-                Settings.Global.putString(contentResolver, POLICY_CONTROL, mode)
-            }
+            // null为不隐藏
+            Settings.Global.putString(contentResolver, POLICY_CONTROL, mode)
         }  catch (e: Exception) {
             e.printStackTrace()
         }
