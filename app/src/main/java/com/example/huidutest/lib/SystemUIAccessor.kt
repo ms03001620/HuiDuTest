@@ -19,7 +19,7 @@ import androidx.core.content.ContextCompat
  * 撤销授权
  * adb shell pm revoke com.example.huidutest android.permission.WRITE_SECURE_SETTINGS
  *
- * - "immersive.full" (隐藏状态栏和导航栏)
+ * - "immersive.full=*" (隐藏状态栏和导航栏)
  * - "immersive.status=*" (仅隐藏状态栏)
  * - "immersive.navigation=*" (仅隐藏导航栏)
  * - null 或 "" (恢复系统 UI 默认状态)
@@ -39,7 +39,7 @@ object SystemUIAccessor {
      * @param context Context 对象。
      */
     fun hideSystemBars(context: Context) {
-        setSystemImmersiveMode(context, "immersive.full=com.example.huidutest")
+        setSystemImmersiveMode(context, "immersive.full=${context.packageName}")
     }
 
     /**
@@ -64,14 +64,10 @@ object SystemUIAccessor {
     }
 
     fun isHide(context: Context):Boolean {
-        try {
-            val contentResolver = context.contentResolver
-            val mode = Settings.Global.getString(contentResolver, POLICY_CONTROL)
-            return !mode.isNullOrEmpty()
-        }  catch (e: Exception) {
-            e.printStackTrace()
-        }
-        return false
+        val contentResolver = context.contentResolver
+        // 获取设置，不需要权限
+        val mode = Settings.Global.getString(contentResolver, POLICY_CONTROL)
+        return !mode.isNullOrEmpty()
     }
 
     private fun setSystemImmersiveMode(context: Context, mode: String?) {
