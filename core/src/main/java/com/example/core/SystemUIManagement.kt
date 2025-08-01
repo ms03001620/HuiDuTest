@@ -1,4 +1,4 @@
-package com.example.huidutest.lib
+package com.example.core
 
 import android.app.Activity
 import android.app.ActivityManager
@@ -6,7 +6,7 @@ import android.app.admin.DevicePolicyManager
 import android.content.ComponentName
 import android.content.Context
 
-class SystemUIManagement(context: Context, adminReceiverClass: Class<*>) {
+public class SystemUIManagement(context: Context, adminReceiverClass: Class<*>) {
     private val devicePolicyManager: DevicePolicyManager
     private val adminComponentName: ComponentName
     private val applicationContext: Context = context.applicationContext

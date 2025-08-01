@@ -1,4 +1,4 @@
-package com.example.huidutest.lib
+package com.example.core
 
 import android.Manifest
 import android.content.Context
@@ -24,7 +24,7 @@ import androidx.core.content.ContextCompat
  * - "immersive.navigation=*" (仅隐藏导航栏)
  * - null 或 "" (恢复系统 UI 默认状态)
  */
-object SystemUIAccessor {
+public object SystemUIAccessor {
     private const val POLICY_CONTROL = "policy_control"
 
     fun hasPermission(context: Context): Boolean {

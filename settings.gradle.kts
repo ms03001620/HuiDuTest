@@ -21,3 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "HuiDuTest"
 include(":app")
+include(":core")
