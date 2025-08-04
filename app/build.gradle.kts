@@ -41,7 +41,7 @@ android {
 dependencies {
     //implementation(project(":core")) //取消直接引用
     //implementation("com.example:core:1.0.0")//改成指定包地址（实际是在mavenLocal()中）
-    implementation("com.github.ms03001620:core:v1.0.6")
+    implementation("com.github.ms03001620:core:1.0.8")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
