@@ -12,6 +12,7 @@ import com.example.core.SystemUIAccessor
 import com.example.core.SystemUIManagement
 import com.example.huidutest.databinding.ActivityMainBinding
 import com.example.huidutest.lib.KioskDeviceAdminReceiver
+import com.example.huidutest.lib.RootHelper
 
 
 class MainActivity : AppCompatActivity() {
@@ -29,6 +30,7 @@ class MainActivity : AppCompatActivity() {
         initEvent()
         updateUI()
         registerReceiver()
+        println("root:${RootHelper.canUseRoot()}")
     }
 
     private fun updateUI() {
