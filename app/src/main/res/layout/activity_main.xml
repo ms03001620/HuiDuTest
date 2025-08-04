@@ -28,7 +28,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="11sp"
-        android:text="撤销授权\n需要被授权者自己撤销调用（DevicePolicyManager.clearDeviceOwnerApp）" />
+        android:text="撤销授权\n需要被授权者自己撤销调用（DevicePolicyManager.clearDeviceOwnerApp）或\nadb shell dpm remove-active-admin com.example.huidutest/.lib.KioskDeviceAdminReceiver" />
 
 
 
