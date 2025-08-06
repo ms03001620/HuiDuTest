@@ -3,7 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.example.huidutest">
 
-    <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS" />
+    <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS"
+        tools:ignore="ProtectedPermissions" /> <!-- Device通用，需要这个权限 -->
 
     <application
         android:allowBackup="true"
@@ -16,6 +17,18 @@
         android:theme="@style/Theme.HuiDuTest">
         <activity
             android:name=".MainActivity"
+            android:label="Device通用"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".lib.HuiduDeviceActivity"
+            android:label="Device灰度"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

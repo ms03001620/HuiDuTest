@@ -50,23 +50,7 @@ public class PlatformTool {
         }
     }
 
-    public static void setNavBarState(Context context, int state) {
-        Log.e("WindowManager", "state = " + state);
-        if (DeviceProperties.getDeviceType() == 13) {
-            Settings.Global.putInt(context.getContentResolver(), NAVIGATION_BAR_ENABLED, Math.abs(state - 1));
-            executeSu(SYNC);
-            return;
-        }
-        try {
-            Settings.System.putInt(context.getContentResolver(), "HuiduHideNavigation", state);
-            String str = state == 0 ? ACTION_SHOW_NAVIGATION_BAR : ACTION_HIDE_NAVIGATION_BAR;
-            Log.d(TAG, "setNavBarState: broadcast >> " + str);
-            context.sendBroadcast(new Intent(str));
-            executeSu(SYNC);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+
 
     public static void setAutoHideNavBar(Context context, int autoHideDelay) {
         try {
@@ -100,14 +84,27 @@ public class PlatformTool {
             //Settings.System.putInt(context.getContentResolver(), "HuiduHideStatusBar", state);
             setStatusBarState( state);
             String str = state == 0 ? ACTION_SHOW_STATUS_BAR : ACTION_HIDE_STATUS_BAR;
-            Log.d(TAG, "setStatusBarState: broadcast >> " + str);
             context.sendBroadcast(new Intent(str));
             executeSu(SYNC);
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
 
-
+    public static void setNavBarState(Context context, int state) {
+        if (DeviceProperties.getDeviceType() == 13) {
+            Settings.Global.putInt(context.getContentResolver(), NAVIGATION_BAR_ENABLED, Math.abs(state - 1));
+            executeSu(SYNC);
+            return;
+        }
+        try {
+           // Settings.System.putInt(context.getContentResolver(), "HuiduHideNavigation", state);
+            String str = state == 0 ? ACTION_SHOW_NAVIGATION_BAR : ACTION_HIDE_NAVIGATION_BAR;
+            context.sendBroadcast(new Intent(str));
+            executeSu(SYNC);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static CommandLine.ExecuteResult setStatusBarState(int state) {
