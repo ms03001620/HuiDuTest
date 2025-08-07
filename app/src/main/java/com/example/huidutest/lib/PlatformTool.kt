@@ -67,13 +67,8 @@ object PlatformTool {
 
     fun setStatusBarState(context: Context, state: Int) {
         try {
-            //Settings.System.putInt(context.getContentResolver(), "HuiduHideStatusBar", state);
-            setStatusBarState(state)
             val str = if (state == 0) ACTION_SHOW_STATUS_BAR else ACTION_HIDE_STATUS_BAR
             context.sendBroadcast(Intent(str))
-            GlobalScope.launch(Dispatchers.IO) {
-                CommandLine.executeSu(SYNC)
-            }
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -81,12 +76,8 @@ object PlatformTool {
 
     fun setNavBarState(context: Context, state: Int) {
         try {
-            // Settings.System.putInt(context.getContentResolver(), "HuiduHideNavigation", state);
             val str = if (state == 0) ACTION_SHOW_NAVIGATION_BAR else ACTION_HIDE_NAVIGATION_BAR
             context.sendBroadcast(Intent(str))
-            GlobalScope.launch(Dispatchers.IO) {
-                CommandLine.executeSu(SYNC)
-            }
         } catch (e: Exception) {
             e.printStackTrace()
         }
