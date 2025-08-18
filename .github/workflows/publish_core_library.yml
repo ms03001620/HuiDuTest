@@ -3,7 +3,7 @@ name: Publish Core Library to GitHub Packages
 on:
   push:
     tags:
-      - 'v*' # Trigger on tags like v1.0.0, v0.1-beta, etc.
+      - 'v*' # Trigger on tags like v1.0.0, v0.1-beta, etc.git tag v1.0.7   git push origin v1.0.8
 
 jobs:
   publish:
